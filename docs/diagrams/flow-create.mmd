@@ -1,0 +1,25 @@
+sequenceDiagram
+  autonumber
+  actor U as Auditor (browser)
+  participant API as Web + API service
+  participant DB as Database
+
+  U->>API: POST /issues (form) or POST /api/issues (JSON)<br/>session cookie + CSRF token
+  API->>API: Session valid? else 302 /login or 401
+  API->>API: CSRF token / JSON content-type check (403 / 415)
+  API->>API: Validate title, page_url (http/https), WCAG, severity
+  alt invalid input
+    API-->>U: 400 { error: { code: validation_failed, fields } }<br/>HTML: form re-rendered, error summary focused,<br/>message next to each field, values kept
+  else valid
+    API->>DB: BEGIN
+    API->>DB: INSERT issues (owner_id = session user, status = open)
+    API->>DB: INSERT status_changes (NULL -> open)
+    API->>DB: COMMIT
+    alt database unavailable
+      API-->>U: 503 "Nothing was saved, try again"<br/>(form values still in the browser)
+    else committed
+      API-->>U: 201 + Location (API) / 302 to /issues/:id (HTML)
+      U->>API: GET /issues/:id
+      API-->>U: Detail page + "Issue saved" in polite live region
+    end
+  end

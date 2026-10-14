@@ -1,0 +1,70 @@
+<%- include('../partials/top') %>
+<p><a href="/issues">Back to your issues</a></p>
+<h1><%= issue.title %></h1>
+
+<dl class="summary-list">
+  <div><dt>Status</dt><dd><%- include('../partials/badge', { kind: 'status', value: issue.status, label: STATUSES[issue.status] }) %></dd></div>
+  <div><dt>Severity</dt><dd><%- include('../partials/badge', { kind: 'severity', value: issue.severity, label: SEVERITIES[issue.severity] }) %></dd></div>
+  <div><dt>WCAG criterion</dt><dd><%= issue.wcag_criterion %></dd></div>
+  <div><dt>Page URL</dt><dd class="break"><a href="<%= issue.page_url %>" rel="noopener noreferrer"><%= issue.page_url %></a></dd></div>
+  <div><dt>Created</dt><dd><time datetime="<%= issue.created_at %>"><%= formatDate(issue.created_at) %></time></dd></div>
+  <div><dt>Last updated</dt><dd><time datetime="<%= issue.updated_at %>"><%= formatDate(issue.updated_at) %></time></dd></div>
+</dl>
+
+<h2>Description</h2>
+<% if (issue.description) { %>
+  <div class="description"><%= issue.description %></div>
+<% } else { %>
+  <p class="meta">No description given.</p>
+<% } %>
+<p><a class="button button--secondary" href="/issues/<%= issue.id %>/edit">Edit issue<span class="visually-hidden">: <%= issue.title %></span></a></p>
+
+<section aria-labelledby="status-heading" class="panel">
+  <h2 id="status-heading" tabindex="-1">Change status</h2>
+  <p>Current status: <strong><%= STATUSES[issue.status] %></strong>.</p>
+  <form method="post" action="/issues/<%= issue.id %>/status">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="expected" value="<%= issue.status %>">
+    <div class="field">
+      <label for="status">New status</label>
+      <p class="hint" id="status-hint">Only the moves allowed from <%= STATUSES[issue.status] %> are listed.</p>
+      <select id="status" name="status" aria-describedby="status-hint">
+        <% nextStatuses.forEach((s) => { %>
+          <option value="<%= s %>"><%= STATUSES[s] %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label for="note">Note <span class="optional">(optional)</span></label>
+      <p class="hint" id="note-hint">For example, why it will not be fixed or what the retest found.</p>
+      <textarea id="note" name="note" rows="2" maxlength="500" aria-describedby="note-hint"></textarea>
+    </div>
+    <button type="submit" class="button">Change status</button>
+  </form>
+</section>
+
+<section aria-labelledby="history-heading">
+  <h2 id="history-heading">Status history</h2>
+  <table class="history-table">
+    <caption class="visually-hidden">Status changes for this issue, oldest first</caption>
+    <thead>
+      <tr>
+        <th scope="col">When</th>
+        <th scope="col">Who</th>
+        <th scope="col">Change</th>
+        <th scope="col">Note</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% history.forEach((h) => { %>
+        <tr>
+          <td><time datetime="<%= h.changed_at %>"><%= formatDate(h.changed_at) %></time></td>
+          <td><%= h.changed_by_name %></td>
+          <td><%= h.from_status ? `${STATUSES[h.from_status]} to ${STATUSES[h.to_status]}` : `Created as ${STATUSES[h.to_status]}` %></td>
+          <td><% if (h.note) { %><%= h.note %><% } else { %><span class="meta">None</span><% } %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+<%- include('../partials/bottom') %>

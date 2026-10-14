@@ -1,0 +1,26 @@
+<%- include('partials/top') %>
+<h1>Sign in</h1>
+<p>This is a demo. There are no passwords: choose one of the two demo accounts below.</p>
+
+<% if (typeof loginError !== 'undefined') { %>
+  <section class="error-summary" id="error-summary" tabindex="-1" aria-labelledby="error-summary-title">
+    <h2 id="error-summary-title">There is a problem</h2>
+    <p><%= loginError %></p>
+  </section>
+<% } %>
+
+<form method="post" action="/login" class="login-form">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <input type="hidden" name="next" value="<%= next %>">
+  <ul class="account-list">
+    <% users.forEach((u) => { %>
+      <li>
+        <button type="submit" name="userId" value="<%= u.id %>" class="button">
+          Sign in as <%= u.display_name %>
+        </button>
+        <span class="hint"><%= u.role %></span>
+      </li>
+    <% }) %>
+  </ul>
+</form>
+<%- include('partials/bottom') %>

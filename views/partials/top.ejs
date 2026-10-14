@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | <%= appName %></title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <p class="site-name"><a href="/">Audit Tracker</a></p>
+      <% if (currentUser) { %>
+        <nav aria-label="Main">
+          <ul class="nav-list">
+            <li><a href="/issues" <%- path === '/issues' ? 'aria-current="page"' : '' %>>Your issues</a></li>
+            <li><a href="/issues/new" <%- path === '/issues/new' ? 'aria-current="page"' : '' %>>Report an issue</a></li>
+          </ul>
+        </nav>
+        <form class="signout" method="post" action="/logout">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <span>Signed in as <strong><%= currentUser.display_name %></strong></span>
+          <button type="submit" class="button button--secondary">Sign out</button>
+        </form>
+      <% } %>
+    </div>
+  </header>
+
+  <%# Empty live regions exist from page load; app.js copies the flash text in
+      after a short delay so screen readers announce it without moving focus. %>
+  <div class="visually-hidden" role="status" aria-live="polite" id="live-polite"></div>
+  <div class="visually-hidden" role="alert" aria-live="assertive" id="live-assertive"></div>
+
+  <main id="main" tabindex="-1" class="wrap">
+    <% if (typeof flash !== 'undefined' && flash) { %>
+      <div class="flash flash--<%= flash.type %>" data-flash data-tone="<%= flash.type %>">
+        <p><strong><%= flash.type === 'error' ? 'Error:' : 'Success:' %></strong> <span data-flash-text><%= flash.text %></span></p>
+      </div>
+    <% } %>

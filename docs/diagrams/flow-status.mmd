@@ -1,0 +1,27 @@
+sequenceDiagram
+  autonumber
+  actor U as Auditor (browser)
+  participant API as Web + API service
+  participant DB as Database
+
+  U->>API: POST /issues/42/status { to: fixed, expected: in_progress }
+  API->>API: Authenticated? CSRF ok? (401 / 403)
+  API->>DB: SELECT * FROM issues WHERE id = 42 AND owner_id = :user
+  alt no row (missing or not yours)
+    API-->>U: 404 not_found (same answer either way)
+  else found
+    API->>API: Is "to" a real status? (400)
+    API->>API: expected == current status? else 409 conflict
+    API->>API: TRANSITIONS[current] includes "to"? else 422 transition_not_allowed
+    API->>DB: BEGIN
+    API->>DB: UPDATE issues SET status = 'fixed', version = version + 1<br/>WHERE id = 42 AND owner_id = :user AND status = 'in_progress'
+    alt 0 rows changed (lost the race)
+      API->>DB: ROLLBACK
+      API-->>U: 409 conflict "Someone else changed it"
+    else 1 row
+      API->>DB: INSERT status_changes (who, when, in_progress -> fixed, note)
+      API->>DB: COMMIT
+      API-->>U: 200 JSON / 302 back to detail page
+    end
+  end
+  Note over U: Success: "Status changed from In progress to Fixed" (polite live region)<br/>Failure: "Could not change status. ..." (assertive live region)<br/>Focus stays where it was, page shows the real current status

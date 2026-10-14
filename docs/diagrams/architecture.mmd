@@ -1,0 +1,30 @@
+flowchart TB
+  classDef local fill:#e6effc,stroke:#0b57d0,stroke-width:2px,color:#1b1b1f
+  classDef prod fill:#ffffff,stroke:#5f6670,stroke-width:2px,stroke-dasharray:6 4,color:#1b1b1f
+
+  user["Auditor's browser<br/>server-rendered HTML forms,<br/>small JS for focus + live regions"]:::local
+  idp["Identity provider<br/>OIDC / company SSO"]:::prod
+  cdn["CDN / edge<br/>TLS, caches CSS/JS,<br/>WAF + rate limits"]:::prod
+  lb["Load balancer<br/>health checks"]:::prod
+  api["Web + API service (Node.js, Express)<br/>stateless, 2+ instances<br/>auth check, validation, ownership, workflow"]:::local
+  redis[("Redis<br/>sessions,<br/>rate-limit counters")]:::prod
+  db[("Primary database<br/>SQLite locally, PostgreSQL in prod<br/>users, issues, status_changes")]:::local
+  replica[("Read replica<br/>list + filter queries")]:::prod
+  logs["Logs, metrics, traces<br/>OpenTelemetry"]:::prod
+
+  user -- "HTTPS request: page / form post / JSON + session cookie<br/>response: HTML or JSON { error: { code, message, fields } }" --> cdn
+  user -. "sign-in redirect" .-> idp
+  idp -. "auth code -> ID token (user id, team claims)" .-> api
+  cdn -- "dynamic requests (static files served from cache)" --> lb
+  lb -- "HTTP to a healthy instance" --> api
+  api -- "session lookup, rate-limit increments" --> redis
+  api -- "writes: INSERT/UPDATE issue + status_change<br/>in one transaction" --> db
+  api -- "reads: paged, filtered list queries" --> replica
+  db -- "streaming replication" --> replica
+  api -- "structured logs, request traces" --> logs
+
+  subgraph legend [Legend]
+    direction LR
+    l1["Built locally in Part 2"]:::local
+    l2["Production only"]:::prod
+  end

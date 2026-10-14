@@ -1,0 +1,218 @@
+/* Contrast ratios in the comments are against white (WCAG relative luminance formula).
+   Against the grey panel background every value is still above 5:1. */
+:root {
+  --text: #1b1b1f;        /* 17.2:1 */
+  --muted: #474c55;       /* 8.6:1 */
+  --link: #0b57d0;        /* 6.4:1 */
+  --link-visited: #6a1b9a;
+  --border: #5f6670;      /* 5.8:1, inputs and controls */
+  --rule: #c9cdd3;        /* decorative lines only */
+  --focus: #0b57d0;
+  --error: #b3261e;       /* 6.5:1 */
+  --success: #1e6b33;     /* 6.5:1 */
+  --panel: #f4f6f8;
+  --space: 1rem;
+  font-size: 100%;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--text);
+  background: #fff;
+}
+
+.wrap { max-width: 64rem; margin: 0 auto; padding: 0 var(--space); }
+
+h1 { font-size: 1.9rem; line-height: 1.2; margin: 1.5rem 0 1rem; overflow-wrap: anywhere; }
+h2 { font-size: 1.35rem; line-height: 1.25; margin: 2rem 0 0.75rem; }
+p, li, dd { max-width: 70ch; }
+
+a { color: var(--link); text-underline-offset: 0.15em; }
+a:visited { color: var(--link-visited); }
+a:hover { text-decoration-thickness: 2px; }
+
+/* One focus style for everything. 3px solid at 6.4:1 against white. */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+main:focus, h2[tabindex="-1"]:focus { outline: none; }
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -10rem;
+  z-index: 10;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  color: var(--link);
+  border: 2px solid var(--focus);
+  font-weight: 600;
+}
+.skip-link:focus { top: 0.5rem; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Header ------------------------------------------------------------------ */
+.site-header { border-bottom: 1px solid var(--rule); background: #fff; }
+.site-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+.site-name { margin: 0; font-weight: 700; font-size: 1.15rem; }
+.site-name a { color: var(--text); text-decoration: none; }
+.site-name a:hover { text-decoration: underline; }
+.nav-list { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; list-style: none; margin: 0; padding: 0; }
+.nav-list a { display: inline-block; padding: 0.25rem 0; }
+.nav-list a[aria-current="page"] { font-weight: 700; text-decoration-thickness: 3px; }
+.signout { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-left: auto; }
+
+.site-footer { margin-top: 3rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.9rem; }
+
+/* Buttons ----------------------------------------------------------------- */
+.button {
+  display: inline-block;
+  min-height: 2.75rem;
+  padding: 0.6rem 1.1rem;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #fff;
+  background: var(--link);
+  border: 2px solid var(--link);
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:visited { color: #fff; }
+.button:hover { background: #0842a0; border-color: #0842a0; }
+.button--secondary, .button--secondary:visited { color: var(--link); background: #fff; }
+.button--secondary:hover { background: var(--panel); color: #0842a0; }
+
+/* Forms ------------------------------------------------------------------- */
+.field { margin-bottom: 1.25rem; }
+label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+.req, .optional { font-weight: 400; }
+.hint { margin: 0 0 0.35rem; color: var(--muted); font-size: 0.95rem; }
+
+input[type="text"], input[type="url"], select, textarea {
+  display: block;
+  width: 100%;
+  max-width: 36rem;
+  padding: 0.5rem 0.6rem;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+}
+textarea { resize: vertical; }
+
+.field--error { border-left: 4px solid var(--error); padding-left: 0.75rem; }
+.field--error input, .field--error select, .field--error textarea { border-color: var(--error); }
+.field-error { margin: 0 0 0.35rem; color: var(--error); font-weight: 600; }
+
+.form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1.5rem; }
+
+.error-summary {
+  margin: 1rem 0 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 3px solid var(--error);
+  border-radius: 4px;
+}
+.error-summary h2 { margin-top: 0; font-size: 1.2rem; }
+.error-summary a { color: var(--error); font-weight: 600; }
+
+/* Messages ---------------------------------------------------------------- */
+.flash { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 6px solid; border-radius: 4px; }
+.flash p { margin: 0; }
+.flash--success { border-color: var(--success); background: #eaf5ec; }
+.flash--error { border-color: var(--error); background: #fdeceb; }
+
+/* Panels and lists -------------------------------------------------------- */
+.panel { background: var(--panel); border-radius: 6px; padding: 0.25rem 1rem 1rem; margin: 1.5rem 0; }
+.panel h2 { margin-top: 1rem; }
+
+.filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 1rem; }
+.filters .field { flex: 1 1 12rem; margin-bottom: 0.75rem; }
+.filters__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+
+.account-list { list-style: none; padding: 0; margin: 1.5rem 0; }
+.account-list li { margin-bottom: 1rem; }
+.account-list .hint { display: block; margin-top: 0.25rem; }
+
+.summary-list { margin: 0 0 1.5rem; }
+.summary-list > div { display: flex; flex-wrap: wrap; gap: 0 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--rule); }
+.summary-list dt { flex: 0 0 9rem; font-weight: 600; }
+.summary-list dd { margin: 0; flex: 1 1 12rem; min-width: 0; }
+.break { overflow-wrap: anywhere; }
+.description { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 70ch; }
+.meta { display: block; color: var(--muted); font-size: 0.9rem; }
+
+/* Tables ------------------------------------------------------------------ */
+table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; }
+th, td { text-align: left; vertical-align: top; padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--rule); }
+thead th { border-bottom: 2px solid var(--text); }
+td { overflow-wrap: anywhere; }
+
+.pagination ul { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; padding: 0; }
+
+/* Badges: the word is always there; colour is a second cue only. Text is
+   --text on a light tint, so contrast stays above 13:1 for all of them. */
+.badge {
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  background: #fff;
+}
+.narrow-only { display: none; }
+.badge--severity-minor { background: #eef1f5; }
+.badge--severity-moderate { background: #fff3cd; border-color: #8a6100; }
+.badge--severity-serious { background: #ffe1c7; border-color: #9c4300; }
+.badge--severity-critical { background: #fbdedc; border-color: var(--error); border-width: 2px; }
+.badge--status-open { background: #e6effc; }
+.badge--status-in_progress { background: #fff3cd; }
+.badge--status-fixed { background: #e3f1e6; }
+.badge--status-verified { background: #d4ecda; border-color: var(--success); }
+.badge--status-wont_fix { background: #eceff1; }
+
+/* Narrow screens (320px, or 1280px at 400% zoom) -------------------------- */
+@media (max-width: 40em) {
+  h1 { font-size: 1.6rem; }
+  th, td { padding: 0.5rem 0.3rem; font-size: 0.95rem; }
+  .badge { white-space: normal; }
+  /* The date column moves under the title so the title keeps enough width.
+     Nothing is lost: the same date is shown in the first cell. */
+  .issue-table .col-updated { display: none; }
+  .issue-table .narrow-only { display: block; }
+  .signout { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; }
+}
+
+@media (forced-colors: active) {
+  .badge, .flash, .error-summary { border: 1px solid CanvasText; }
+}

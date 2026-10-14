@@ -1,0 +1,14 @@
+stateDiagram-v2
+  direction LR
+  [*] --> Open: issue created
+  Open --> InProgress: start work
+  Open --> WontFix: decide not to fix
+  InProgress --> Fixed: fix shipped
+  InProgress --> Open: work dropped
+  Fixed --> Verified: retest passes
+  Fixed --> InProgress: retest fails
+  Verified --> Open: regression found
+  WontFix --> Open: reopen
+
+  InProgress: In progress
+  WontFix: Won't fix

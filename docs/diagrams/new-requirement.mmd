@@ -1,0 +1,26 @@
+flowchart TB
+  classDef existing fill:#ffffff,stroke:#5f6670,stroke-width:2px,color:#1b1b1f
+  classDef added fill:#fff3cd,stroke:#8a6100,stroke-width:2px,color:#1b1b1f
+
+  user["Browser"]:::existing
+  api["Web + API service"]:::existing
+  db[("PostgreSQL<br/>issues, attachments,<br/>outbox")]:::existing
+  s3[("Object storage (S3-compatible)<br/>private bucket, screenshots")]:::added
+  scan["Upload checker<br/>type/size check, strip EXIF,<br/>virus scan"]:::added
+  queue["Job queue<br/>(SQS / Redis stream)"]:::added
+  worker["Notification worker<br/>retries + backoff, idempotent"]:::added
+  mail["Email provider<br/>(SMTP / SES)"]:::added
+  lead["Team lead's inbox"]:::added
+
+  user -- "1. POST /issues/:id/attachments<br/>(request upload)" --> api
+  api -- "2. presigned PUT URL<br/>(5 min, 5 MB, image/*)" --> user
+  user -- "3. PUT screenshot bytes" --> s3
+  s3 -- "4. object-created event" --> scan
+  scan -- "5. mark attachment ready/rejected" --> db
+  api -- "Critical issue: INSERT issue +<br/>INSERT outbox row, same transaction" --> db
+  db -- "outbox relay polls new rows" --> queue
+  queue -- "send_critical_email job<br/>{issue_id, team_id}" --> worker
+  worker -- "load issue + team lead" --> db
+  worker -- "email: title, page, link<br/>(no screenshot attached)" --> mail
+  mail --> lead
+  api -- "presigned GET URL<br/>for viewing" --> user

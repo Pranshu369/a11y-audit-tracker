@@ -1,0 +1,89 @@
+<%- include('../partials/top') %>
+<%
+  const v = (name) => (values && values[name] != null ? values[name] : '');
+  const describedBy = (name, hint) => [hint && `${name}-hint`, errors[name] && `${name}-error`].filter(Boolean).join(' ');
+%>
+<% if (mode === 'edit') { %>
+  <p><a href="/issues/<%= issue.id %>">Back to issue</a></p>
+<% } %>
+<h1><%= heading %></h1>
+<% if (conflict) { %>
+  <section class="error-summary" id="error-summary" tabindex="-1" aria-labelledby="error-summary-title">
+    <h2 id="error-summary-title">Your changes were not saved</h2>
+    <p><%= conflict %></p>
+    <p><a href="/issues/<%= issue.id %>">View the current version of the issue</a> (your changes here will be lost)</p>
+  </section>
+<% } %>
+<%- include('../partials/error-summary', { errors }) %>
+
+<p>Fields marked “required” must be filled in.</p>
+
+<form method="post" action="<%= action %>" novalidate class="issue-form">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <% if (mode === 'edit') { %>
+    <input type="hidden" name="version" value="<%= v('version') || issue.version %>">
+  <% } %>
+
+  <div class="field <%= errors.title ? 'field--error' : '' %>">
+    <label for="title">Title <span class="req">(required)</span></label>
+    <% if (errors.title) { %><p class="field-error" id="title-error"><span class="visually-hidden">Error:</span> <%= errors.title %></p><% } %>
+    <input type="text" id="title" name="title" value="<%= v('title') %>" maxlength="200" required
+      <%- errors.title ? 'aria-invalid="true"' : '' %>
+      <%- describedBy('title') ? `aria-describedby="${describedBy('title')}"` : '' %>>
+  </div>
+
+  <div class="field <%= errors.page_url ? 'field--error' : '' %>">
+    <label for="page_url">Page URL <span class="req">(required)</span></label>
+    <p class="hint" id="page_url-hint">The full address of the page, starting with http:// or https://</p>
+    <% if (errors.page_url) { %><p class="field-error" id="page_url-error"><span class="visually-hidden">Error:</span> <%= errors.page_url %></p><% } %>
+    <input type="url" id="page_url" name="page_url" value="<%= v('page_url') %>" inputmode="url" autocomplete="url" spellcheck="false" required
+      <%- errors.page_url ? 'aria-invalid="true"' : '' %>
+      aria-describedby="<%= describedBy('page_url', true) %>">
+  </div>
+
+  <div class="field <%= errors.wcag_criterion ? 'field--error' : '' %>">
+    <label for="wcag_criterion">WCAG criterion <span class="req">(required)</span></label>
+    <p class="hint" id="wcag_criterion-hint">WCAG 2.2 success criteria at level A and AA.</p>
+    <% if (errors.wcag_criterion) { %><p class="field-error" id="wcag_criterion-error"><span class="visually-hidden">Error:</span> <%= errors.wcag_criterion %></p><% } %>
+    <select id="wcag_criterion" name="wcag_criterion" required
+      <%- errors.wcag_criterion ? 'aria-invalid="true"' : '' %>
+      aria-describedby="<%= describedBy('wcag_criterion', true) %>">
+      <option value="">Choose a criterion</option>
+      <% wcagGroups.forEach((group) => { %>
+        <optgroup label="<%= group.principle %>">
+          <% group.options.forEach((opt) => { %>
+            <option value="<%= opt %>" <%= v('wcag_criterion') === opt ? 'selected' : '' %>><%= opt %></option>
+          <% }) %>
+        </optgroup>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="field <%= errors.severity ? 'field--error' : '' %>">
+    <label for="severity">Severity <span class="req">(required)</span></label>
+    <% if (errors.severity) { %><p class="field-error" id="severity-error"><span class="visually-hidden">Error:</span> <%= errors.severity %></p><% } %>
+    <select id="severity" name="severity" required
+      <%- errors.severity ? 'aria-invalid="true"' : '' %>
+      <%- describedBy('severity') ? `aria-describedby="${describedBy('severity')}"` : '' %>>
+      <option value="">Choose a severity</option>
+      <% Object.entries(SEVERITIES).forEach(([value, label]) => { %>
+        <option value="<%= value %>" <%= v('severity') === value ? 'selected' : '' %>><%= label %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="field <%= errors.description ? 'field--error' : '' %>">
+    <label for="description">Description <span class="optional">(optional)</span></label>
+    <p class="hint" id="description-hint">What is wrong, who it affects, and how to reproduce it.</p>
+    <% if (errors.description) { %><p class="field-error" id="description-error"><span class="visually-hidden">Error:</span> <%= errors.description %></p><% } %>
+    <textarea id="description" name="description" rows="6" maxlength="5000"
+      <%- errors.description ? 'aria-invalid="true"' : '' %>
+      aria-describedby="<%= describedBy('description', true) %>"><%= v('description') %></textarea>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="button"><%= mode === 'create' ? 'Save issue' : 'Save changes' %></button>
+    <a href="<%= mode === 'create' ? '/issues' : `/issues/${issue.id}` %>">Cancel</a>
+  </div>
+</form>
+<%- include('../partials/bottom') %>

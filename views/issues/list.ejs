@@ -1,0 +1,82 @@
+<%- include('../partials/top') %>
+<h1>Your issues</h1>
+<p><a class="button" href="/issues/new">Report an issue</a></p>
+
+<section aria-labelledby="filter-heading" class="panel">
+  <h2 id="filter-heading">Filter issues</h2>
+  <form method="get" action="/issues" class="filters">
+    <div class="field">
+      <label for="filter-status">Status</label>
+      <select id="filter-status" name="status">
+        <option value="">All statuses</option>
+        <% Object.entries(STATUSES).forEach(([value, label]) => { %>
+          <option value="<%= value %>" <%= filters.status === value ? 'selected' : '' %>><%= label %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label for="filter-severity">Severity</label>
+      <select id="filter-severity" name="severity">
+        <option value="">All severities</option>
+        <% Object.entries(SEVERITIES).forEach(([value, label]) => { %>
+          <option value="<%= value %>" <%= filters.severity === value ? 'selected' : '' %>><%= label %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="filters__actions">
+      <button type="submit" class="button">Apply filters</button>
+      <% if (filters.status || filters.severity) { %>
+        <a href="/issues">Clear filters</a>
+      <% } %>
+    </div>
+  </form>
+</section>
+
+<h2 id="results-heading">Results</h2>
+<p id="result-count">
+  Showing <%= countText %><%= filterText ? ` with ${filterText}` : '' %><%= result.pages > 1 ? ` (page ${result.page} of ${result.pages})` : '' %>.
+</p>
+
+<% if (result.items.length === 0) { %>
+  <p>
+    <% if (filterText) { %>No issues match these filters. <a href="/issues">Show all issues</a>.
+    <% } else { %>You have not reported any issues yet. <a href="/issues/new">Report your first issue</a>.<% } %>
+  </p>
+<% } else { %>
+  <table class="issue-table" aria-describedby="result-count">
+    <caption class="visually-hidden">Your issues<%= filterText ? `, filtered by ${filterText}` : '' %></caption>
+    <thead>
+      <tr>
+        <th scope="col">Issue</th>
+        <th scope="col">Severity</th>
+        <th scope="col">Status</th>
+        <th scope="col" class="col-updated">Last updated</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% result.items.forEach((issue) => { %>
+        <tr>
+          <td>
+            <a href="/issues/<%= issue.id %>"><%= issue.title %></a>
+            <span class="meta"><%= issue.wcag_criterion %></span>
+            <span class="meta narrow-only">Updated <time datetime="<%= issue.updated_at %>"><%= formatDate(issue.updated_at) %></time></span>
+          </td>
+          <td><%- include('../partials/badge', { kind: 'severity', value: issue.severity, label: SEVERITIES[issue.severity] }) %></td>
+          <td><%- include('../partials/badge', { kind: 'status', value: issue.status, label: STATUSES[issue.status] }) %></td>
+          <td class="col-updated"><time datetime="<%= issue.updated_at %>"><%= formatDate(issue.updated_at) %></time></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <% if (result.pages > 1) { %>
+    <nav aria-label="Pagination" class="pagination">
+      <ul>
+        <% if (result.page > 1) { %><li><a href="<%= pageLink(result.page - 1) %>">Previous page</a></li><% } %>
+        <li>Page <%= result.page %> of <%= result.pages %></li>
+        <% if (result.page < result.pages) { %><li><a href="<%= pageLink(result.page + 1) %>">Next page</a></li><% } %>
+      </ul>
+    </nav>
+  <% } %>
+<% } %>
+<%- include('../partials/bottom') %>

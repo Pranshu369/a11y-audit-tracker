@@ -1,0 +1,56 @@
+erDiagram
+  TEAMS ||--o{ TEAM_MEMBERS : has
+  USERS ||--o{ TEAM_MEMBERS : "belongs to"
+  USERS ||--o{ ISSUES : owns
+  TEAMS ||--o{ ISSUES : "scopes (prod)"
+  ISSUES ||--o{ STATUS_CHANGES : "history of"
+  USERS ||--o{ STATUS_CHANGES : "made by"
+  ISSUES ||--o{ ATTACHMENTS : "has (prod)"
+
+  USERS {
+    int id PK
+    text email UK "NOT NULL"
+    text display_name "NOT NULL"
+    text role
+  }
+  TEAMS {
+    int id PK "production only"
+    text name "NOT NULL"
+    int lead_user_id FK "users.id"
+  }
+  TEAM_MEMBERS {
+    int team_id PK "FK teams.id, production only"
+    int user_id PK "FK users.id"
+  }
+  ISSUES {
+    int id PK
+    int owner_id FK "users.id NOT NULL"
+    int team_id FK "teams.id (prod)"
+    text title "NOT NULL, 1-200 chars"
+    text description "default empty, max 5000"
+    text page_url "NOT NULL, http/https only"
+    text wcag_criterion "NOT NULL, from WCAG 2.2 list"
+    text severity "CHECK minor|moderate|serious|critical"
+    text status "CHECK open|in_progress|fixed|verified|wont_fix"
+    int version "optimistic lock, +1 per write"
+    timestamp created_at "NOT NULL"
+    timestamp updated_at "NOT NULL"
+  }
+  STATUS_CHANGES {
+    int id PK
+    int issue_id FK "issues.id ON DELETE CASCADE"
+    int changed_by FK "users.id NOT NULL"
+    text from_status "NULL = created"
+    text to_status "NOT NULL"
+    text note "optional, max 500"
+    timestamp changed_at "NOT NULL"
+  }
+  ATTACHMENTS {
+    int id PK "production only"
+    int issue_id FK "issues.id"
+    text object_key "key in object storage"
+    text content_type "image/png|image/jpeg|image/webp"
+    int size_bytes "max 5 MB"
+    text alt_text "NOT NULL, describes the screenshot"
+    timestamp created_at
+  }
